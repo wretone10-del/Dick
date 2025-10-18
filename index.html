@@ -15,7 +15,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      overflow: hidden;
+      position: relative;
     }
 
     .background-box {
@@ -24,12 +25,14 @@
       max-width: 420px;
       border-radius: 25px;
       overflow: hidden;
+      z-index: 1;
     }
 
     .background-gradient {
       position: absolute;
       inset: 0;
       background: linear-gradient(180deg, #e8eeff 0%, #d0dcff 100%);
+      z-index: 0;
     }
 
     .container {
@@ -146,7 +149,6 @@
       box-shadow: 0 5px 15px rgba(60, 79, 224, 0.3);
     }
 
-    /* ✨ Анимация ошибки (shake) */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-8px); }
@@ -165,14 +167,83 @@
       display: none;
     }
 
-    .error-text.active {
-      display: block;
+    .error-text.active { display: block; }
+
+    /* === 🌧️ ДОЖДЬ === */
+    .rain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
     }
 
+    .drop {
+      position: absolute;
+      width: 2px;
+      height: 15px;
+      background: rgba(60, 79, 224, 0.2);
+      bottom: 100%;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh);
+      }
+    }
+
+    /* === 📱 МЕНЮ === */
+    #menuScreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #e8eeff 0%, #d0dcff 100%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(1.05); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #menuScreen h1 {
+      font-size: 28px;
+      color: #3c4fe0;
+      margin-bottom: 40px;
+      background: rgba(255,255,255,0.4);
+      padding: 10px 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+
+    #uploadBtn {
+      padding: 14px 28px;
+      background: linear-gradient(90deg, #3c4fe0 0%, #6e80ff 100%);
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #uploadBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(60,79,224,0.3);
+    }
   </style>
 </head>
 <body>
-  <div class="background-box">
+  <div class="rain" id="rain"></div>
+
+  <div class="background-box" id="authScreen">
     <div class="background-gradient"></div>
 
     <div class="container" id="formBox">
@@ -186,7 +257,6 @@
         <div class="tab" onclick="switchTab('register')">Зарегистрироваться</div>
       </div>
 
-      <!-- Вход -->
       <div class="right active" id="login">
         <h2>Вход в аккаунт</h2>
         <p>Авторизуйтесь, чтобы продолжить.</p>
@@ -202,7 +272,6 @@
         <button class="btn" id="loginBtn">Войти</button>
       </div>
 
-      <!-- Регистрация -->
       <div class="right" id="register">
         <h2>Создать аккаунт</h2>
         <p>Заполните поля, чтобы зарегистрироваться.</p>
@@ -220,6 +289,12 @@
     </div>
   </div>
 
+  <!-- 🌈 Экран меню -->
+  <div id="menuScreen">
+    <h1>Добро пожаловать!</h1>
+    <button id="uploadBtn">Загрузить файл</button>
+  </div>
+
   <script>
     const tabs = document.querySelectorAll('.tab');
     const panels = document.querySelectorAll('.right');
@@ -230,16 +305,24 @@
       document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
       document.getElementById(tab).classList.add('active');
     }
+
+    // 🌧️ Дождь
+    const rain = document.getElementById('rain');
+    for (let i = 0; i < 60; i++) {
+      const drop = document.createElement('div');
+      drop.classList.add('drop');
+      drop.style.left = Math.random() * 100 + '%';
+      drop.style.animationDuration = 0.8 + Math.random() * 0.7 + 's';
+      drop.style.animationDelay = Math.random() * 2 + 's';
+      drop.style.height = 10 + Math.random() * 10 + 'px';
+      rain.appendChild(drop);
+    }
   </script>
 
-  <!-- Firebase -->
+  <!-- 🔥 Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { 
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnsAfr4vNj-Bo5-c4_WKjo4jIaqQrTse0",
@@ -259,6 +342,8 @@
     const loginError = document.getElementById('loginError');
     const registerError = document.getElementById('registerError');
     const formBox = document.getElementById('formBox');
+    const authScreen = document.getElementById('authScreen');
+    const menuScreen = document.getElementById('menuScreen');
 
     // 🔐 Вход
     loginBtn.addEventListener('click', async () => {
@@ -270,6 +355,7 @@
       try {
         await signInWithEmailAndPassword(auth, email, password);
         alert('✅ Вход успешен!');
+        // ← Меню не показываем, остаёмся на экране авторизации
       } catch (error) {
         loginError.textContent = '❌ Неверный логин или пароль';
         loginError.classList.add('active');
@@ -287,7 +373,8 @@
 
       try {
         await createUserWithEmailAndPassword(auth, email, password);
-        alert('✅ Регистрация успешна!');
+        authScreen.style.display = 'none';
+        menuScreen.style.display = 'flex';
       } catch (error) {
         registerError.textContent = '❌ ' + error.message;
         registerError.classList.add('active');
