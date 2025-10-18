@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Авторизация</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Inter", sans-serif; }
+
+    body {
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .background-box {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 25px;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .background-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, #e8eeff 0%, #d0dcff 100%);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      backdrop-filter: blur(25px);
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 25px;
+      overflow: hidden;
+      z-index: 1;
+      box-shadow: 0 4px 40px rgba(0, 0, 0, 0.08);
+      animation: scaleIn 0.8s ease;
+    }
+
+    @keyframes scaleIn {
+      0% { opacity: 0; transform: translateY(30px) scale(0.98); }
+      60% { opacity: 1; transform: translateY(-5px) scale(1.02); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .left { padding: 30px; text-align: left; }
+
+    .left .badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #3c4fe0;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .left h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1e1e1e;
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      padding: 10px;
+      border-radius: 15px;
+      margin: 0 20px 20px 20px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      color: #3c4fe0;
+      padding: 10px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .tab.active {
+      background: rgba(60, 79, 224, 0.15);
+      color: #3c4fe0;
+      font-weight: 600;
+    }
+
+    .right { padding: 20px 30px 30px 30px; display: none; }
+    .right.active { display: block; }
+
+    .right h2 { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: #1e1e1e; }
+    .right p { font-size: 14px; color: #555; margin-bottom: 20px; }
+
+    .input-group { margin-bottom: 15px; position: relative; }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 40px;
+      font-size: 14px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.7);
+      color: #1e1e1e;
+      outline: none;
+      transition: 0.3s ease;
+    }
+
+    .input-group input:focus {
+      border-color: #3c4fe0;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .input-group i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(0,0,0,0.4);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #3c4fe0 0%, #6e80ff 100%);
+      color: white;
+      font-size: 15px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 5px 15px rgba(60, 79, 224, 0.3);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    .error-shake {
+      animation: shake 0.4s ease;
+    }
+
+    .error-text {
+      color: #e63946;
+      font-size: 13px;
+      margin-top: -10px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    .error-text.active { display: block; }
+
+    /* === 🌧️ ДОЖДЬ === */
+    .rain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .drop {
+      position: absolute;
+      width: 2px;
+      height: 15px;
+      background: rgba(60, 79, 224, 0.2);
+      bottom: 100%;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh);
+      }
+    }
+
+    /* === 📱 МЕНЮ === */
+    #menuScreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #e8eeff 0%, #d0dcff 100%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(1.05); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    #menuScreen h1 {
+      font-size: 28px;
+      color: #3c4fe0;
+      margin-bottom: 40px;
+      background: rgba(255,255,255,0.4);
+      padding: 10px 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+
+    #uploadBtn {
+      padding: 14px 28px;
+      background: linear-gradient(90deg, #3c4fe0 0%, #6e80ff 100%);
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #uploadBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(60,79,224,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="rain" id="rain"></div>
+
+  <div class="background-box" id="authScreen">
+    <div class="background-gradient"></div>
+
+    <div class="container" id="formBox">
+      <div class="left">
+        <div class="badge">АВТОРИЗАЦИЯ</div>
+        <h1>Рады видеть<br>именно тебя</h1>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('login')">Войти</div>
+        <div class="tab" onclick="switchTab('register')">Зарегистрироваться</div>
+      </div>
+
+      <div class="right active" id="login">
+        <h2>Вход в аккаунт</h2>
+        <p>Авторизуйтесь, чтобы продолжить.</p>
+        <div class="input-group">
+          <i class="fa fa-envelope"></i>
+          <input id="loginEmail" type="email" placeholder="Email">
+        </div>
+        <div class="input-group">
+          <i class="fa fa-lock"></i>
+          <input id="loginPassword" type="password" placeholder="Пароль">
+        </div>
+        <div class="error-text" id="loginError"></div>
+        <button class="btn" id="loginBtn">Войти</button>
+      </div>
+
+      <div class="right" id="register">
+        <h2>Создать аккаунт</h2>
+        <p>Заполните поля, чтобы зарегистрироваться.</p>
+        <div class="input-group">
+          <i class="fa fa-envelope"></i>
+          <input id="registerEmail" type="email" placeholder="Email">
+        </div>
+        <div class="input-group">
+          <i class="fa fa-lock"></i>
+          <input id="registerPassword" type="password" placeholder="Пароль">
+        </div>
+        <div class="error-text" id="registerError"></div>
+        <button class="btn" id="registerBtn">Зарегистрироваться</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🌈 Экран меню -->
+  <div id="menuScreen">
+    <h1>Добро пожаловать!</h1>
+    <button id="uploadBtn">Загрузить файл</button>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.right');
+
+    function switchTab(tab) {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+      document.getElementById(tab).classList.add('active');
+    }
+
+    // 🌧️ Дождь
+    const rain = document.getElementById('rain');
+    for (let i = 0; i < 60; i++) {
+      const drop = document.createElement('div');
+      drop.classList.add('drop');
+      drop.style.left = Math.random() * 100 + '%';
+      drop.style.animationDuration = 0.8 + Math.random() * 0.7 + 's';
+      drop.style.animationDelay = Math.random() * 2 + 's';
+      drop.style.height = 10 + Math.random() * 10 + 'px';
+      rain.appendChild(drop);
+    }
+  </script>
+
+  <!-- 🔥 Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnsAfr4vNj-Bo5-c4_WKjo4jIaqQrTse0",
+      authDomain: "auth-bf4ed.firebaseapp.com",
+      projectId: "auth-bf4ed",
+      storageBucket: "auth-bf4ed.firebasestorage.app",
+      messagingSenderId: "225135779305",
+      appId: "1:225135779305:web:6b99454979b61a685d3f78",
+      measurementId: "G-KXKXV54JFM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const loginError = document.getElementById('loginError');
+    const registerError = document.getElementById('registerError');
+    const formBox = document.getElementById('formBox');
+    const authScreen = document.getElementById('authScreen');
+    const menuScreen = document.getElementById('menuScreen');
+
+    // 🔐 Вход
+    loginBtn.addEventListener('click', async () => {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      loginError.classList.remove('active');
+      formBox.classList.remove('error-shake');
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert('✅ Вход успешен!');
+        // ← Меню не показываем, остаёмся на экране авторизации
+      } catch (error) {
+        loginError.textContent = '❌ Неверный логин или пароль';
+        loginError.classList.add('active');
+        formBox.classList.add('error-shake');
+        setTimeout(() => formBox.classList.remove('error-shake'), 500);
+      }
+    });
+
+    // 📝 Регистрация
+    registerBtn.addEventListener('click', async () => {
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      registerError.classList.remove('active');
+      formBox.classList.remove('error-shake');
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        authScreen.style.display = 'none';
+        menuScreen.style.display = 'flex';
+      } catch (error) {
+        registerError.textContent = '❌ ' + error.message;
+        registerError.classList.add('active');
+        formBox.classList.add('error-shake');
+        setTimeout(() => formBox.classList.remove('error-shake'), 500);
+      }
+    });
+  </script>
+</body>
+</html>
+
